@@ -3,6 +3,7 @@ package algorithm;
 import data.*;
 import util.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,6 @@ public class DynamicProgrammingRecommender implements Recommender {
 
     @Override
     public List<Song> recommend(User user, int k) {
-        return null;
+        return new ArrayList<>();
     }
 }
