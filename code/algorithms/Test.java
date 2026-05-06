@@ -54,7 +54,7 @@ public class Test {
         // ===== BENCHMARK =====
         List<Recommender> recommenders = List.of(
                 new BruteForceRecommender(data),
-                new GreedyRecommender(data),
+                new TopKRecommender(data),
                 new HeuristicRecommender(data)
         );
 
