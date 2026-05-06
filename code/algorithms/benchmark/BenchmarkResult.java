@@ -19,6 +19,10 @@ public class BenchmarkResult {
         return timeNano;
     }
 
+    public int getK() {
+        return k;
+    }
+
     @Override
     public String toString() {
         return algorithmName + " | avgTime(ns): " + timeNano;
