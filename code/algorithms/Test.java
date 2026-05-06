@@ -1,8 +1,9 @@
-import data.DataLoader;
-import data.Interaction;
-import data.Song;
-import data.User;
+import data.*;
+import algorithm.*;
+import benchmark.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Test {
@@ -26,6 +27,22 @@ public class Test {
                 break;
             }
             break;
+        }
+
+        // benchmark thử
+        List<Recommender> recommenders = List.of(
+                new BruteForceRecommender(data),
+                new GreedyRecommender(data),
+                new HeuristicRecommender(data)
+        );
+
+        List<User> testUsers = new ArrayList<>(data.keySet()).subList(0, 100);
+
+        List<BenchmarkResult> results =
+                BenchmarkRunner.run(recommenders, testUsers, 5);
+
+        for (BenchmarkResult r : results) {
+            System.out.println(r.getAlgorithmName() + " : " + r.getTimeNano());
         }
     }
 
