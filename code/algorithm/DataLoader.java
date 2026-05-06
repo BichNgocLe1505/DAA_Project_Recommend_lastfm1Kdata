@@ -53,7 +53,7 @@ public class DataLoader {
                     User user = userCache.computeIfAbsent(userId, User::new);
 
                     // ===== SONG CACHE =====
-                    String songKey = trackId + "||" + trackName + artistId + "||" + artistName;
+                    String songKey = trackId + "||" + trackName + "||" + artistId + "||" + artistName;
                     Song song = songCache.computeIfAbsent(songKey,
                             k -> new Song(trackId, trackName, artistId, artistName));
 
