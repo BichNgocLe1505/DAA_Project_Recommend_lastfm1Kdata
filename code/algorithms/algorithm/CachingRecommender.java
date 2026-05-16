@@ -3,7 +3,9 @@ package algorithm;
 import data.*;
 import java.util.*;
 import util.Scoring;
+import util.ScoringVersion;
 import util.Similarity;
+import util.SimilarityVersion;
 
 public class CachingRecommender implements Recommender {
     private Map<User, Map<Song, Interaction>> data;
@@ -14,6 +16,8 @@ public class CachingRecommender implements Recommender {
     //V3
     private Map<User, Map<User, Double>> neighborTable;
 
+    private CachingVersion version;
+
 
     private static final double SIM_THRESHOLD          = 0.05;
     //private static final double SIM_THRESHOLD_FALLBACK = 0.05;
@@ -22,8 +26,13 @@ public class CachingRecommender implements Recommender {
     //private boolean neighborTableBuilt   = false;
 
     public CachingRecommender(Map<User, Map<Song, Interaction>> data) {
+        this(data, CachingVersion.V2);
+    }
+
+    public CachingRecommender(Map<User, Map<Song, Interaction>> data, CachingVersion version) {
         this.data = data;
         this.similarityCache = new HashMap<>();
+        this.version = version;
     }
 
     private String getCacheKey(User u1, User u2) {
@@ -38,13 +47,26 @@ public class CachingRecommender implements Recommender {
 
     @Override
     public List<Song> recommend(User targetUser, int k) {
+
         if(!data.containsKey(targetUser)) return new ArrayList<>();
-        return recommendV2_BottomUpTable(targetUser, k);
+
+        switch (this.version) {
+            case V1:
+                return recommendV1_TopDownMemo(targetUser, k);
+            case V2:
+                return recommendV2_BottomUpTable(targetUser, k);
+            case V3:
+                //return recommendV3_PrecomputedNeighbors(targetUser, k);
+                return new ArrayList<>();
+            default:
+                return new ArrayList<>();
+        }
     }
 
     private List<Song> scoreAndExtractTopK(User targetUser,
                                            Map<User, Double> qualifiedNeighbors,
                                            int k) {
+
         Map<Song, Double> songScores = Scoring.score(targetUser, data, qualifiedNeighbors);
 
         PriorityQueue<Map.Entry<Song, Double>> heapSongs = new PriorityQueue<>(

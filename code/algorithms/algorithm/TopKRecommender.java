@@ -9,9 +9,16 @@ public class TopKRecommender implements Recommender {
     private Map<User, Map<Song, Interaction>> data;
     private static final double SIM_THRESHOLD          = 0.1;
     private static final double SIM_THRESHOLD_FALLBACK = 0.05;
+    private TopKVersion version;
 
     public TopKRecommender(Map<User, Map<Song, Interaction>> data) {
         this.data = data;
+        this.version = TopKVersion.V2;
+    }
+
+    public TopKRecommender(Map<User, Map<Song, Interaction>> data, TopKVersion version) {
+        this.data = data;
+        this.version = version;
     }
 
     @Override
@@ -20,7 +27,16 @@ public class TopKRecommender implements Recommender {
             return new ArrayList<>();
         }
 
-        return recommendV2_MinHeap(targetUser, k);
+        switch(version){
+            case V1:
+                return recommendV1_NaiveSort(targetUser, k);
+            case V2:
+                return recommendV2_MinHeap(targetUser, k);
+            case V3:
+                return recommendV3_DynamicFloor(targetUser, k);
+            default:
+                return new ArrayList<>();
+        }
     }
 
     //O(U * log U)

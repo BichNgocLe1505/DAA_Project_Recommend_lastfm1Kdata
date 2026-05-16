@@ -8,15 +8,36 @@ import java.util.*;
 public class HeuristicRecommender implements Recommender {
     private Map<User, Map<Song, Interaction>> data;
     private Map<Song, Set<User>> invertedIndex;
+    private HeuristicVersion  version;
 
     public HeuristicRecommender(Map<User, Map<Song, Interaction>> data) {
         this.data = data;
         this.invertedIndex = buildInvertedIndex(data);
+        this.version = HeuristicVersion.V2;
+    }
+
+    public HeuristicRecommender(Map<User, Map<Song, Interaction>> data, HeuristicVersion version) {
+        this.data = data;
+        this.invertedIndex = buildInvertedIndex(data);
+        this.version = version;
     }
 
     @Override
     public List<Song> recommend(User user, int k) {
-        Map<User, Map<Song, Interaction>> filteredData = filterDataBySong(user);
+        //Map<User, Map<Song, Interaction>> filteredData = filterDataBySong(user);
+        Map<User, Map<Song, Interaction>> filteredData = new HashMap<>();
+
+        switch(version) {
+            case V1:
+                filteredData = filterData(user);
+                break;
+            case V2:
+                filteredData = filterDataBySong(user);
+                break;
+            default:
+                filteredData = new HashMap<>();
+        }
+
         Map<User, Double> similarityMap = new HashMap<>();
 
         for (User other : filteredData.keySet()) {
