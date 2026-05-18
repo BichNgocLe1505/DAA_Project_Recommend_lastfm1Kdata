@@ -3,36 +3,36 @@ package algorithm;
 import data.*;
 import java.util.*;
 import util.Scoring;
-import util.ScoringVersion;
 import util.Similarity;
-import util.SimilarityVersion;
 
 public class CachingRecommender implements Recommender {
     private Map<User, Map<Song, Interaction>> data;
     //V1
     private Map<String, Double> similarityCache;
-    //V2 + 3
+    //V2
     private Map<User, Map<User, Double>> similarityTable;
-    //V3
-    private Map<User, Map<User, Double>> neighborTable;
 
-    private CachingVersion version;
-
-
-    private static final double SIM_THRESHOLD          = 0.05;
-    //private static final double SIM_THRESHOLD_FALLBACK = 0.05;
+    private static final double SIM_THRESHOLD = 0.05;
 
     private boolean similarityTableBuilt = false;
-    //private boolean neighborTableBuilt   = false;
 
-    public CachingRecommender(Map<User, Map<Song, Interaction>> data) {
-        this(data, CachingVersion.V2);
+    public long opCountCacheMiss  = 0;
+    public long opCountCacheHit   = 0;
+    public long opCountHeap       = 0;
+    public long opCountScore      = 0;
+    public long extraMemoryBytes  = 0;
+
+    public void resetCounters() {
+        opCountCacheMiss = 0;
+        opCountCacheHit  = 0;
+        opCountHeap      = 0;
+        opCountScore     = 0;
+        extraMemoryBytes = 0;
     }
 
-    public CachingRecommender(Map<User, Map<Song, Interaction>> data, CachingVersion version) {
+    public CachingRecommender(Map<User, Map<Song, Interaction>> data) {
         this.data = data;
         this.similarityCache = new HashMap<>();
-        this.version = version;
     }
 
     private String getCacheKey(User u1, User u2) {
@@ -47,48 +47,47 @@ public class CachingRecommender implements Recommender {
 
     @Override
     public List<Song> recommend(User targetUser, int k) {
-
         if(!data.containsKey(targetUser)) return new ArrayList<>();
+        return recommendV2_BottomUpTable(targetUser, k);
+    }
 
-        switch (this.version) {
-            case V1:
-                return recommendV1_TopDownMemo(targetUser, k);
-            case V2:
-                return recommendV2_BottomUpTable(targetUser, k);
-            case V3:
-                //return recommendV3_PrecomputedNeighbors(targetUser, k);
-                return new ArrayList<>();
-            default:
-                return new ArrayList<>();
-        }
+    public void warmUp() {
+        buildSimilarityTable();
+    }
+
+    public boolean isWarmedUp() {
+        return similarityTableBuilt;
     }
 
     private List<Song> scoreAndExtractTopK(User targetUser,
                                            Map<User, Double> qualifiedNeighbors,
                                            int k) {
-
         Map<Song, Double> songScores = Scoring.score(targetUser, data, qualifiedNeighbors);
+        opCountScore += songScores.size();
 
         PriorityQueue<Map.Entry<Song, Double>> heapSongs = new PriorityQueue<>(
-                Comparator.comparingDouble(Map.Entry::getValue)
-        );
+                Comparator.comparingDouble(Map.Entry::getValue));
+
         for (Map.Entry<Song, Double> entry : songScores.entrySet()) {
             heapSongs.offer(entry);
+            opCountHeap++;
             if (heapSongs.size() > k) {
                 heapSongs.poll();
+                opCountHeap++;
             }
         }
 
+        extraMemoryBytes += (qualifiedNeighbors.size() * 64L)
+                + (songScores.size() * 64L)
+                + ((k + 1) * 32L);
+
         List<Song> results = new ArrayList<>();
-        while (!heapSongs.isEmpty()) {
-            results.add(0, heapSongs.poll().getKey());
-        }
+        while (!heapSongs.isEmpty()) results.add(0, heapSongs.poll().getKey());
         return results;
     }
 
-    private List<Song> recommendV1_TopDownMemo(User targetUser, int k){
+    public List<Song> recommendV1_TopDownMemo(User targetUser, int k) {
         Map<Song, Interaction> targetHistory = data.get(targetUser);
-
         Map<User, Double> qualifiedNeighbors = new HashMap<>();
 
         for (Map.Entry<User, Map<Song, Interaction>> entry : data.entrySet()) {
@@ -100,14 +99,14 @@ public class CachingRecommender implements Recommender {
 
             if (similarityCache.containsKey(cacheKey)) {
                 sim = similarityCache.get(cacheKey);
+                opCountCacheHit++;
             } else {
                 sim = Similarity.cosine(targetHistory, entry.getValue());
                 similarityCache.put(cacheKey, sim);
+                opCountCacheMiss++;
             }
 
-            if (sim > SIM_THRESHOLD) {
-                qualifiedNeighbors.put(otherUser, sim);
-            }
+            if (sim > SIM_THRESHOLD) qualifiedNeighbors.put(otherUser, sim);
         }
         return scoreAndExtractTopK(targetUser, qualifiedNeighbors, k);
     }
@@ -125,27 +124,28 @@ public class CachingRecommender implements Recommender {
 
             for (int j = i + 1; j < U; j++) {
                 User v = users.get(j);
-
+                opCountCacheMiss++; // first and only computation per pair
                 double sim = Similarity.cosine(histU, data.get(v));
 
                 if (sim > SIM_THRESHOLD) {
-                    similarityTable
-                            .computeIfAbsent(u, x -> new HashMap<>())
-                            .put(v, sim);
-                    similarityTable
-                            .computeIfAbsent(v, x -> new HashMap<>())
-                            .put(u, sim);
+                    similarityTable.computeIfAbsent(u, x -> new HashMap<>()).put(v, sim);
+                    similarityTable.computeIfAbsent(v, x -> new HashMap<>()).put(u, sim);
                 }
             }
         }
+
+        long pairsStored = similarityTable.values().stream().mapToLong(Map::size).sum() / 2;
+        extraMemoryBytes += pairsStored * 64L;
+
         similarityTableBuilt = true;
     }
 
-    private List<Song> recommendV2_BottomUpTable(User targetUser, int k) {
+    public List<Song> recommendV2_BottomUpTable(User targetUser, int k) {
         buildSimilarityTable();
 
         Map<User, Double> qualifiedNeighbors =
                 similarityTable.getOrDefault(targetUser, Collections.emptyMap());
+        opCountCacheHit += qualifiedNeighbors.size();
 
         return scoreAndExtractTopK(targetUser, qualifiedNeighbors, k);
     }

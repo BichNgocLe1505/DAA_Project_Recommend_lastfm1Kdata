@@ -10,6 +10,18 @@ public class HeuristicRecommender implements Recommender {
     private Map<Song, Set<User>> invertedIndex;
     private HeuristicVersion  version;
 
+    public long opCountSimilarity = 0;
+    public long opCountHeap       = 0;
+    public long opCountScore      = 0;
+    public long extraMemoryBytes  = 0;
+
+    public void resetCounters() {
+        opCountSimilarity = 0;
+        opCountHeap = 0;
+        opCountScore = 0;
+        extraMemoryBytes = 0;
+    }
+
     public HeuristicRecommender(Map<User, Map<Song, Interaction>> data) {
         this.data = data;
         this.invertedIndex = buildInvertedIndex(data);
@@ -24,8 +36,8 @@ public class HeuristicRecommender implements Recommender {
 
     @Override
     public List<Song> recommend(User user, int k) {
-        //Map<User, Map<Song, Interaction>> filteredData = filterDataBySong(user);
-        Map<User, Map<Song, Interaction>> filteredData = new HashMap<>();
+        // similarity
+        Map<User, Map<Song, Interaction>> filteredData;
 
         switch(version) {
             case V1:
@@ -43,6 +55,8 @@ public class HeuristicRecommender implements Recommender {
         for (User other : filteredData.keySet()) {
             if (other.equals(user)) continue;
 
+            opCountSimilarity++;
+
             double sim =  Similarity.cosine(filteredData.get(user), filteredData.get(other));
 
             if (sim > 0) {
@@ -54,9 +68,33 @@ public class HeuristicRecommender implements Recommender {
             return Collections.emptyList();
         }
 
+        // score songs
         Map<Song, Double> scores = Scoring.score(user, filteredData, similarityMap);
 
-        return topK(scores, k);
+        if (scores == null || scores.isEmpty()) return Collections.emptyList();
+
+        opCountScore += scores.size();
+
+        // extract top k
+        PriorityQueue<Map.Entry<Song, Double>> heap = new PriorityQueue<>(
+                Comparator.comparingDouble(Map.Entry::getValue));
+
+        for (Map.Entry<Song, Double> entry : scores.entrySet()) {
+            heap.offer(entry);
+            opCountHeap++;
+            if (heap.size() > k) {
+                heap.poll();
+                opCountHeap++;
+            }
+        }
+
+        extraMemoryBytes += (similarityMap.size() * 64L)
+                + (scores.size() * 64L)
+                + ((k + 1) * 32L);
+
+        List<Song> results = new ArrayList<>();
+        while (!heap.isEmpty()) results.add(0, heap.poll().getKey());
+        return results;
     }
 
     // v1
@@ -128,14 +166,5 @@ public class HeuristicRecommender implements Recommender {
         }
 
         return filteredData;
-    }
-
-    private List<Song> topK(Map<Song, Double> scores, int k) {
-        return scores.entrySet()
-                .stream()
-                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
-                .limit(k)
-                .map(Map.Entry::getKey)
-                .toList();
     }
 }
