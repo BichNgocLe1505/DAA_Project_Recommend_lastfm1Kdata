@@ -39,7 +39,7 @@ PALETTE = {
 }
 
 SCENARIO_ORDER = ["small", "medium", "large"]
-SCENARIO_LABELS = {"small": "Small (N=10)", "medium": "Medium (N=25)", "large": "Large (N=50)"}
+SCENARIO_LABELS = {"small": "Small (N=50)", "medium": "Medium (N=100)", "large": "Large (N=500)"}
 
 STYLE = {
     "figure.facecolor"  : "#0F1117",
@@ -208,7 +208,7 @@ def chart_scalability():
         ax.set_ylabel(label)
         ax.yaxis.grid(True, alpha=0.4)
         ax.set_axisbelow(True)
-        ax.set_xticks([10, 25, 50])
+        ax.set_xticks([50, 100, 500])
         ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:,.0f}"))
 
     handles = [mpatches.Patch(color=PALETTE[av], label=av) for av in combos]
