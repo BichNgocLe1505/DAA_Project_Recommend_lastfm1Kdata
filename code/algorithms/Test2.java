@@ -5,13 +5,13 @@ import exporter.*;
 import java.util.*;
 
 public class Test2 {
-    private static final String DATA_FILE  = "../data/samples_csv/play_count_sample_50users.csv";
+    private static final String DATA_FILE  = "../data/samples_csv/play_count_sample_500users.csv";
     private static final String OUTPUT_DIR = "output/";
     private static final int    TOP_K      = 5;
     private static final int    WARMUP_RUNS = 2;
 
-    private static final int SMALL_N = 10;
-    private static final int MEDIUM_N = 25;
+    private static final int SMALL_N = 50;
+    private static final int MEDIUM_N = 100;
 
     public static void main(String[] args) {
 
