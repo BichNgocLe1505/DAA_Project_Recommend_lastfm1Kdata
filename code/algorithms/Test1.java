@@ -87,7 +87,6 @@ public class Test1 {
                 List<Song> songs;
                 switch (version) {
                     case "V1_NaiveSort":    songs = rec.recommendV1_NaiveSort(u, TOP_K);    break;
-                    case "V3_DynamicFloor": songs = rec.recommendV3_DynamicFloor(u, TOP_K); break;
                     default:                songs = rec.recommend(u, TOP_K);                // V2
                 }
                 results.put(u, songs);

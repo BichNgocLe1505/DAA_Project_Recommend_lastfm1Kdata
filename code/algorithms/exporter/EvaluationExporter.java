@@ -213,7 +213,6 @@ public class EvaluationExporter {
             pw.println("  TopKRecommender");
             pw.println("    V1 NaiveSort        O(U²·I)    sort O(S log S)  — baseline brute force");
             pw.println("    V2 MinHeap          O(U·log K)                  — greedy, prune with min-heap");
-            pw.println("    V3 DynamicFloor     O(U·log K_n)                — adaptive floor cuts extra work");
             pw.println();
             pw.println("  CachingRecommender");
             pw.println("    V1 TopDownMemo      O(U²) build, O(1) reuse    — lazy memoization per target user");

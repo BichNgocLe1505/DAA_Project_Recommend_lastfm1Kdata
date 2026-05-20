@@ -14,32 +14,48 @@ public class RecommendationExporter {
             String filePath,
             Map<User, List<Song>> recommendations) {
 
-        try {
-            File file = new File(filePath);
-            File parent = file.getParentFile();
+        exportToCSV(filePath, recommendations, null);
+    }
 
-            if (parent != null && !parent.exists()) {
-                parent.mkdirs();
-            }
+    public static void exportToCSV(
+            String filePath,
+            Map<User, List<Song>> recommendations,
+            String algorithmLabel) {
+
+        try {
+            File file   = new File(filePath);
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) parent.mkdirs();
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 
-                writer.write("User|Artist|Track\n");
+                // Header
+                if (algorithmLabel != null) {
+                    writer.write("Algorithm|User|Artist|Track\n");
+                } else {
+                    writer.write("User|Artist|Track\n");
+                }
 
                 for (Map.Entry<User, List<Song>> entry : recommendations.entrySet()) {
-
-                    User user = entry.getKey();
-
+                    User       user  = entry.getKey();
                     List<Song> songs = entry.getValue();
                     if (songs == null) continue;
 
                     for (Song song : songs) {
-
-                        writer.write(
-                                sanitize(user.getUserId()) + "|" +
-                                        sanitize(song.getArtistName()) + "|" +
-                                        sanitize(song.getTrackName()) + "\n"
-                        );
+                        if (algorithmLabel != null) {
+                            writer.write(
+                                    sanitize(algorithmLabel)        + "|" +
+                                            sanitize(user.getUserId())      + "|" +
+                                            sanitize(song.getArtistName())  + "|" +
+                                            sanitize(song.getTrackName())   + "\n"
+                            );
+                        } else {
+                            writer.write(
+                                    sanitize(user.getUserId())      + "|" +
+                                            sanitize(song.getArtistName())  + "|" +
+                                            sanitize(song.getTrackName())   + "\n"
+                            );
+                        }
                     }
                 }
             }

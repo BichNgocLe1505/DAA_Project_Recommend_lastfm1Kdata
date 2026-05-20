@@ -5,13 +5,13 @@ import exporter.*;
 import java.util.*;
 
 public class Test2 {
-    private static final String DATA_FILE  = "../data/samples_csv/play_count_sample_500users.csv";
+    private static final String DATA_FILE  = "../data/samples_csv/play_count_sample_50users.csv";
     private static final String OUTPUT_DIR = "output/";
     private static final int    TOP_K      = 5;
     private static final int    WARMUP_RUNS = 2;
 
-    private static final int SMALL_N = 20;
-    private static final int MEDIUM_N = 50;
+    private static final int SMALL_N = 10;
+    private static final int MEDIUM_N = 25;
 
     public static void main(String[] args) {
 
@@ -161,10 +161,7 @@ public class Test2 {
                 {"V1_NaiveSort",    "large",   String.valueOf(largeN)},
                 {"V2_MinHeap",      "small",    String.valueOf(smallN)},
                 {"V2_MinHeap",      "medium", String.valueOf(mediumN)},
-                {"V2_MinHeap",      "large",   String.valueOf(largeN)},
-                {"V3_DynamicFloor", "small",    String.valueOf(smallN)},
-                {"V3_DynamicFloor", "medium", String.valueOf(mediumN)},
-                {"V3_DynamicFloor", "large",   String.valueOf(largeN)},
+                {"V2_MinHeap",      "large",   String.valueOf(largeN)}
         };
 
         for (String[] cfg : topkVersionScenarios) {
@@ -185,7 +182,6 @@ public class Test2 {
                 List<Song> songs;
                 switch (version) {
                     case "V1_NaiveSort":    songs = rec.recommendV1_NaiveSort(u, TOP_K);    break;
-                    case "V3_DynamicFloor": songs = rec.recommendV3_DynamicFloor(u, TOP_K); break;
                     default:                songs = rec.recommend(u, TOP_K);
                 }
                 results.put(u, songs);
