@@ -30,8 +30,10 @@ os.makedirs(OUT_DIR, exist_ok=True)
 PALETTE = {
     "BruteForceRecommender/V1_BruteForce"      : "#E63946",
     "PruningRecommender/V1_Pruning"            : "#F4A261",
-    "TopKRecommender/V1_NaiveSort"             : "#2A9D8F",
-    "TopKRecommender/V2_MinHeap"               : "#1D6A63",
+    #"TopKRecommender/V1_NaiveSort"             : "#2A9D8F",
+    #"TopKRecommender/V2_MinHeap"               : "#1D6A63",
+    "GreedyRecommender/V1_GreedyNeighbour"     : "#2A9D8F", ##FAC3D2
+    "GreedyRecommender/V2_GreedySong"          : "#1D6A63", #E4ADC5
     "CachingRecommender/V1_TopDownMemo"        : "#457B9D",
     "CachingRecommender/V2_BottomUpTable"      : "#1D3557",
     "HeuristicRecommender/V1_FilterOverlap"    : "#9B5DE5",
@@ -42,17 +44,17 @@ SCENARIO_ORDER = ["small", "medium", "large"]
 SCENARIO_LABELS = {"small": "Small (N=50)", "medium": "Medium (N=100)", "large": "Large (N=500)"}
 
 STYLE = {
-    "figure.facecolor"  : "#0F1117",
-    "axes.facecolor"    : "#161B22",
+    "figure.facecolor"  : "#FFFFFF", #0F1117
+    "axes.facecolor"    : "#FFFFFF", #161B22
     "axes.edgecolor"    : "#30363D",
-    "axes.labelcolor"   : "#C9D1D9",
-    "axes.titlecolor"   : "#E6EDF3",
-    "xtick.color"       : "#8B949E",
-    "ytick.color"       : "#8B949E",
-    "text.color"        : "#C9D1D9",
-    "grid.color"        : "#21262D",
+    "axes.labelcolor"   : "#000000", #C9D1D9
+    "axes.titlecolor"   : "#000000", #E6EDF3
+    "xtick.color"       : "#000000", #8B949E
+    "ytick.color"       : "#000000", #8B949E
+    "text.color"        : "#000000", #C9D1D9
+    "grid.color"        : "#C6C6C6", #21262D
     "grid.linewidth"    : 0.6,
-    "legend.facecolor"  : "#161B22",
+    "legend.facecolor"  : "#FFFFFF", #161B22
     "legend.edgecolor"  : "#30363D",
 }
 plt.rcParams.update(STYLE)
@@ -82,7 +84,7 @@ def save(fig, name):
 # ════════════════════════════════════════════════════════════════════════════
 def chart_exec_time():
     fig, ax = plt.subplots(figsize=(14, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     x       = np.arange(len(SCENARIO_ORDER))
     width   = 0.8 / n_combo
@@ -117,7 +119,7 @@ def chart_exec_time():
 # ════════════════════════════════════════════════════════════════════════════
 def chart_ops_total():
     fig, ax = plt.subplots(figsize=(14, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     x       = np.arange(len(SCENARIO_ORDER))
     width   = 0.8 / n_combo
@@ -152,7 +154,7 @@ def chart_ops_total():
 # ════════════════════════════════════════════════════════════════════════════
 def chart_memory():
     fig, ax = plt.subplots(figsize=(14, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     x       = np.arange(len(SCENARIO_ORDER))
     width   = 0.8 / n_combo
@@ -186,9 +188,9 @@ def chart_memory():
 # ════════════════════════════════════════════════════════════════════════════
 def chart_scalability():
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
     fig.suptitle("Scalability: Execution Time & Operations vs Input Size",
-                 fontsize=14, fontweight="bold", color="#E6EDF3", y=1.01)
+                 fontsize=14, fontweight="bold", color="#000000", y=1.01) #E6EDF3
 
     for ax, metric, label in zip(
         axes,
@@ -199,7 +201,7 @@ def chart_scalability():
             sub = df[df["AlgoVersion"] == av].sort_values("InputSize(N)")
             if sub.empty:
                 continue
-            color = PALETTE.get(av, "#888")
+            color = PALETTE.get(av, "#000000") #888
             ax.plot(sub["InputSize(N)"], sub[metric],
                     marker="o", linewidth=2, markersize=6,
                     color=color, label=av, alpha=0.9)
@@ -214,8 +216,8 @@ def chart_scalability():
     handles = [mpatches.Patch(color=PALETTE[av], label=av) for av in combos]
     axes[1].legend(handles=handles, bbox_to_anchor=(1.01, 1), loc="upper left",
                    fontsize=7.5, framealpha=0.7)
-    axes[0].set_title("Exec Time Scaling", color="#C9D1D9")
-    axes[1].set_title("Ops Count Scaling", color="#C9D1D9")
+    axes[0].set_title("Exec Time Scaling", color="#000000") #C9D1D9
+    axes[1].set_title("Ops Count Scaling", color="#000000") #C9D1D9
 
     plt.tight_layout()
     save(fig, "4_scalability_lines.png")
@@ -236,7 +238,7 @@ def chart_ops_breakdown():
     w = 0.55
 
     fig, ax = plt.subplots(figsize=(14, 7))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     b1 = ax.bar(x, sim,   width=w, color="#E63946", alpha=0.9, label="Similarity Ops", zorder=3)
     b2 = ax.bar(x, heap,  width=w, bottom=sim, color="#F4A261", alpha=0.9, label="Heap Ops", zorder=3)
@@ -245,7 +247,7 @@ def chart_ops_breakdown():
     ax.set_xticks(x)
     ax.set_xticklabels([lbl.replace("/", "\n") for lbl in labels], fontsize=8)
     ax.set_ylabel("Operation Count")
-    ax.set_title("Operation Breakdown per Algorithm — Large Scenario (N=50)",
+    ax.set_title("Operation Breakdown per Algorithm — Large Scenario (N=500)",
                  fontsize=13, fontweight="bold", pad=12)
     ax.yaxis.grid(True, zorder=0)
     ax.set_axisbelow(True)
@@ -264,7 +266,7 @@ def chart_recovery_heatmap():
     pivot = pivot[SCENARIO_ORDER]
 
     fig, ax = plt.subplots(figsize=(9, 7))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     data = pivot.values.astype(float)
     im   = ax.imshow(data, cmap="RdYlGn", vmin=0, vmax=100, aspect="auto")
@@ -304,7 +306,7 @@ def chart_cache():
     w = 0.35
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
     fig.suptitle("CachingRecommender — Cache Performance & Exec Time",
                  fontsize=13, fontweight="bold", color="#E6EDF3")
 
@@ -342,7 +344,7 @@ def chart_cache():
                          ha="center", fontsize=8, color=ver_colors[vi])
 
     ax2.set_ylabel("Execution Time (ms)")
-    ax2.set_title("V1 TopDownMemo vs V2 BottomUpTable", color="#C9D1D9")
+    ax2.set_title("V1 TopDownMemo vs V2 BottomUpTable", color="#000000") #C9D1D9
     ax2.yaxis.grid(True, alpha=0.4)
     ax2.set_axisbelow(True)
     ax2.legend(fontsize=9)
@@ -367,14 +369,14 @@ def chart_speedup():
     others = others.sort_values("SpeedUp", ascending=True)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#0F1117")
+    fig.patch.set_facecolor("#FFFFFF") #0F1117
 
     colors = [PALETTE.get(av, "#888") for av in others["AlgoVersion"]]
     bars = ax.barh(others["AlgoVersion"], others["SpeedUp"], color=colors, alpha=0.9, zorder=3)
 
     ax.axvline(1.0, color="#E63946", linewidth=1.5, linestyle="--", alpha=0.7, label="BruteForce baseline")
     ax.set_xlabel("Speed-up factor (×)")
-    ax.set_title(f"Speed-up vs BruteForce — Large Scenario (N=50)\nBruteForce: {brute_time:.1f} ms",
+    ax.set_title(f"Speed-up vs BruteForce — Large Scenario (N=500)\nBruteForce: {brute_time:.1f} ms",
                  fontsize=13, fontweight="bold", pad=12)
     ax.xaxis.grid(True, zorder=0)
     ax.set_axisbelow(True)
@@ -382,7 +384,7 @@ def chart_speedup():
 
     for bar, val in zip(bars, others["SpeedUp"]):
         ax.text(val + 0.05, bar.get_y() + bar.get_height() / 2,
-                f"{val:.2f}×", va="center", fontsize=9, color="#E6EDF3")
+                f"{val:.2f}×", va="center", fontsize=9, color="#000000") #
 
     plt.tight_layout()
     save(fig, "8_speedup_vs_bruteforce.png")
